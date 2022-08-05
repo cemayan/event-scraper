@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  labels:
+    app: api
+spec:
+  ports:
+  - port: 8087
+    protocol: TCP
+  clusterIP: None
+  selector:
+    app: api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels:
+    app: api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: api
+        env:
+          - name: DB_HOST_PROD
+            value: es-postgres
+          - name: DB_NAME_PROD
+            value: scraper_db
+          - name: DB_PASSWORD_PROD
+            value: password
+          - name: DB_USER_PROD
+            value: postgres
+          - name: DB_PORT_PROD
+            value: "5432"
+          - name: ENV
+            value: prod
+          - name: SECRET_PROD
+            value: secret
+          - name: AMPQ_URI_PROD
+            value: amqp://default_user_HtEoSGNCH1u7v9Mgn4d:2Q2CMMTNKPj1xCmQ-wGzsGSAy2k_C7Uf@esmq
+          - name: CONSUMER_TAG_PROD
+            value: "consumer-1"
+          - name: EXCHANGE_NAME_PROD
+            value: "events"
+          - name: QUEUE_NAME_PROD
+            value: "delete-queue"
+          - name: ROUTING_KEY_PROD
+            value: "routing-key"
+          - name: AUTH_SERVER_PROD
+            value: "auth-service:8109"

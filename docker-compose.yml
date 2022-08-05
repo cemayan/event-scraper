@@ -1,0 +1,179 @@
+version: '3.8'
+services:
+  rabbitmq:
+    container_name: "rabbitmq"
+    hostname: "rabbitmq"
+    image: rabbitmq:3.10.6-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=master
+      - RABBITMQ_DEFAULT_PASS=masterpass
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - event-scraper-network
+  db:
+    image: postgres:14.4-alpine
+    container_name: db
+    hostname: db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=scraper_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - event-scraper-network
+  grpc-server:
+    build:
+      context: api
+      dockerfile: ./DockerfileGrpc
+    container_name: grpc-server
+    hostname: grpc-server
+    ports:
+      - "50051:50051"
+    restart: always
+    environment:
+      - DB_HOST_DEV=db
+      - DB_PORT_DEV=5432
+      - DB_USER_DEV=postgres
+      - DB_PASSWORD_DEV=password
+      - DB_NAME_DEV=scraper_db
+      - ENV=dev
+      - SECRET_DEV=secret
+      - AMPQ_URI_DEV=amqp://master:masterpass@rabbitmq
+      - GRPC_PORT_DEV=50051
+      - EXCHANGE_NAME_DEV=events-dev
+      - QUEUE_NAME_DEV=delete-queue-dev
+      - CONSUMER_TAG_DEV=consumer-dev
+      - ROUTING_KEY_DEV=routing-key-dev
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  scraper:
+    build: scraper
+    container_name:  scraper
+    ports:
+      - "8096:8096"
+    restart: always
+    environment:
+      - AMPQ_URI_DEV=amqp://master:masterpass@rabbitmq
+      - BILETIX_URL_DEV=https://www.biletix.com/solr/tr/select/
+      - ENV=dev
+      - KULTURIST_URL_DEV=https://kultur.istanbul/etkinlikler/
+      - PASSO_URL_DEV=https://ticketingweb.passo.com.tr/api/passoweb/allevents
+      - SCHEDULE_ARRAY_DEV=[{"provider":0,"timeType":"SECOND","timeCount":30,"category":0,"datePeriod":0,"city":"İstanbul"}]
+      - GRPC_ADDR_DEV=grpc-server
+      - GRPC_ADDR_PORT_DEV=50051
+      - EXCHANGE_NAME_DEV=events-dev
+      - QUEUE_NAME_DEV=delete-queue-dev
+      - CONSUMER_TAG_DEV=consumer-dev
+      - ROUTING_KEY_DEV=routing-key-dev
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  api:
+    build: api
+    container_name:  api
+    ports:
+      - "8087:8087"
+    restart: always
+    environment:
+      - DB_HOST_DEV=db
+      - DB_PORT_DEV=5432
+      - DB_USER_DEV=postgres
+      - DB_PASSWORD_DEV=password
+      - DB_NAME_DEV=scraper_db
+      - ENV=dev
+      - SECRET_DEV=secret
+      - AMPQ_URI_DEV=amqp://master:masterpass@rabbitmq
+      - AUTH_SERVER_DEV=auth_server:8109
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  user_service:
+    build: user
+    container_name: user
+    ports:
+      - "8089:8089"
+    restart: always
+    environment:
+      - DB_HOST_DEV=db
+      - DB_PORT_DEV=5432
+      - DB_USER_DEV=postgres
+      - DB_PASSWORD_DEV=password
+      - DB_NAME_DEV=scraper_db
+      - ENV=dev
+      - SECRET_DEV=secret
+      - AMPQ_URI_DEV=amqp://master:masterpass@rabbitmq
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  auth_server:
+    build:
+      context: user
+      dockerfile: ./DockerfileAuth
+    container_name: auth_server
+    hostname: auth_server
+    ports:
+      - "8109:8109"
+    restart: always
+    environment:
+      - DB_HOST_DEV=db
+      - DB_PORT_DEV=5432
+      - DB_USER_DEV=postgres
+      - DB_PASSWORD_DEV=password
+      - DB_NAME_DEV=scraper_db
+      - ENV=dev
+      - SECRET_DEV=secret
+      - AMPQ_URI_DEV=amqp://master:masterpass@rabbitmq
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  mq-handler:
+    build:
+      context: api
+      dockerfile: ./DockerfileMQ
+    container_name: mq-handler
+    hostname: mq-handler
+    ports:
+      - "8091:8091"
+    restart: always
+    environment:
+      - DB_HOST_DEV=db
+      - DB_PORT_DEV=5432
+      - DB_USER_DEV=postgres
+      - DB_PASSWORD_DEV=password
+      - DB_NAME_DEV=scraper_db
+      - ENV=dev
+      - SECRET_DEV=secret
+      - AMPQ_URI_DEV=amqp://master:masterpass@rabbitmq
+      - EXCHANGE_NAME_DEV=events-dev
+      - QUEUE_NAME_DEV=delete-queue-dev
+      - CONSUMER_TAG_DEV=consumer-dev
+      - ROUTING_KEY_DEV=routing-key-dev
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+volumes:
+  db:
+    driver: local
+networks:
+  event-scraper-network:
+    driver: bridge

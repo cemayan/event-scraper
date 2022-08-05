@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: grpc-server
+  labels:
+    app: grpc-server
+spec:
+  ports:
+  - port: 50051
+    targetPort: 50051
+    protocol: TCP
+  selector:
+    app: grpc-server
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grpc-server
+  labels:
+    app: grpc-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grpc-server
+  template:
+    metadata:
+      labels:
+        app: grpc-server
+    spec:
+      containers:
+      - name: grpc-server
+        image: grpc-server
+        env:
+          - name: DB_HOST_PROD
+            value: es-postgres
+          - name: DB_NAME_PROD
+            value: scraper_db
+          - name: DB_PASSWORD_PROD
+            value: password
+          - name: DB_USER_PROD
+            value: postgres
+          - name: DB_PORT_PROD
+            value: "5432"
+          - name: ENV
+            value: prod
+          - name: SECRET_PROD
+            value: secret
+          - name: GRPC_PORT_PROD
+            value: "50051"
+          - name: AMPQ_URI_PROD
+            value: amqp://default_user_HtEoSGNCH1u7v9Mgn4d:2Q2CMMTNKPj1xCmQ-wGzsGSAy2k_C7Uf@esmq

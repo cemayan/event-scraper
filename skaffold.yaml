@@ -1,0 +1,58 @@
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: event-scraper
+build:
+  artifacts:
+  - image: api
+    context: api
+    docker:
+      dockerfile: Dockerfile
+  - image: grpc-server
+    context: api
+    docker:
+      dockerfile: DockerfileGrpc
+  - image: mq-handler
+    context: api
+    docker:
+      dockerfile: DockerfileMQ
+  - image: scraper
+    context: scraper
+    docker:
+      dockerfile: Dockerfile
+  - image: auth-service
+    context: user
+    docker:
+      dockerfile: DockerfileAuth
+  - image: user-service
+    context: user
+    docker:
+      dockerfile: Dockerfile
+deploy:
+  kubectl:
+    manifests:
+    - api/deployment.yaml
+    - api/grpc-deployment.yaml
+    - api/mq-handler-deployment.yaml
+    - scraper/deployment.yaml
+    - user/deployment.yaml
+    - user/auth-deployment.yaml
+portForward:
+- resourceType: service
+  resourceName: api
+  port: 8087
+- resourceType: service
+  resourceName: grpc-server
+  port: 50051
+- resourceType: service
+  resourceName: mq-handler
+  port: 8091
+- resourceType: service
+  resourceName: scraper
+  port: 8096
+- resourceType: service
+  resourceName: user-service
+  port: 8089
+- resourceType: service
+  resourceName: auth-service
+  port: 8109
