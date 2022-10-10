@@ -1,0 +1,15 @@
+postgresql:
+  HOST: db
+  NAME: scraper_db
+  PASSWORD: password
+  PORT: 5435
+  USER: postgres
+SECRET: secret
+AUTH_SERVER: auth_server:8109
+rabbitmq:
+  AMPQ_URI: "amqp://master:masterpass@rabbitmq"
+  QUEUE_NAME: "delete-queue-test"
+  ROUTING_KEY: "routing-key-test"
+  CONSUMER_TAG: "consumer-test"
+grpc:
+  PORT: "50051"

@@ -1,0 +1,25 @@
+postgresql:
+  HOST: db
+  NAME: scraper_db
+  PASSWORD: password
+  PORT: 5435
+  USER: postgres
+SECRET: secret
+AUTH_SERVER: auth_server:8109
+rabbitmq:
+  AMPQ_URI:   "amqp://master:masterpass@rabbitmq"
+  QUEUE_NAME: "delete-queue-test"
+  ROUTING_KEY: "routing-key-test"
+  CONSUMER_TAG: "consumer-test"
+grpc:
+  PORT: "50051"
+  ADDR: "grpc-server"
+biletix:
+  URL: https://www.biletix.com/solr/tr/select/
+kulturist:
+  URL: https://kultur.istanbul/etkinlikler/
+passo:
+  URL: https://ticketingweb.passo.com.tr/api/passoweb/allevents
+SCHEDULE_ARRAY_DEV: [{"provider":0,"timeType":0,"timeCount":1,"category":0,"datePeriod":0,"city":"İstanbul"},{"provider":1,"timeType":1,"timeCount":1,"category":0,"datePeriod":0,"city":"101"}]
+
+#AMPQ_URI_DEV=amqp://guest:guest@localhost:5672;BILETIX_URL_DEV=https://www.biletix.com/solr/tr/select/;CONSUMER_TAG_DEV=consumer-1;ENV=dev;EXCHANGE_NAME_DEV=events;GOARCH=arm64;GOOS=darwin;GRPC_ADDR_DEV=localhost;GRPC_ADDR_PORT_DEV=50051;KULTURIST_URL_DEV=https://kultur.istanbul/etkinlikler/;PASSO_URL_DEV=https://ticketingweb.passo.com.tr/api/passoweb/allevents;QUEUE_NAME_DEV=delete-queue;ROUTING_KEY_DEV=routing-key;SCHEDULE_ARRAY_DEV=[{"provider":0,"timeType":0,"timeCount":1,"category":0,"datePeriod":0,"city":"İstanbul"},{"provider":1,"timeType":1,"timeCount":1,"category":0,"datePeriod":0,"city":"101"}]

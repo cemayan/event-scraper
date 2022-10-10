@@ -1,0 +1,7 @@
+postgresql:
+  HOST: db
+  NAME: scraper_db
+  PASSWORD: password
+  PORT: 5435
+  USER: postgres
+SECRET: secret

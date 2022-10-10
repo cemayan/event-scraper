@@ -1,0 +1,132 @@
+version: '3.8'
+services:
+  rabbitmq:
+    container_name: "rabbitmq"
+    hostname: "rabbitmq"
+    image: rabbitmq:3.10.6-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=master
+      - RABBITMQ_DEFAULT_PASS=masterpass
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - event-scraper-network
+  db:
+    image: postgres:14.4-alpine
+    container_name: db
+    hostname: db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=scraper_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - db:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - event-scraper-network
+  grpc-server:
+    build:
+      context: ../
+      dockerfile: build/grpc_server/Dockerfile
+    container_name: grpc-server
+    hostname: grpc-server
+    ports:
+      - "50051:50051"
+    restart: always
+    environment:
+      - ENV=docker
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  scraper:
+    build:
+      context: ../
+      dockerfile: build/scraper/Dockerfile
+    ports:
+      - "8096:8096"
+    restart: always
+    container_name: scraper
+    hostname: scraper
+    environment:
+      - ENV=docker
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  api:
+    build:
+      context: ../
+      dockerfile: build/api/Dockerfile
+    ports:
+      - "8087:8087"
+    restart: always
+    container_name: api
+    hostname: api
+    environment:
+      - ENV=docker
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  user_service:
+    build:
+      context: ../
+      dockerfile: build/user/Dockerfile
+    container_name: user
+    hostname: user
+    ports:
+      - "8089:8089"
+    restart: always
+    environment:
+      - ENV=docker
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  auth_server:
+    build:
+      context: ../
+      dockerfile: build/auth/Dockerfile
+    container_name: auth_server
+    hostname: auth_server
+    ports:
+      - "8109:8109"
+    restart: always
+    environment:
+      - ENV=docker
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+  mq-handler:
+    build:
+      context: ../
+      dockerfile: build/mq_handler/Dockerfile
+    container_name: mq-handler
+    hostname: mq-handler
+    ports:
+      - "8091:8091"
+    restart: always
+    environment:
+      - ENV=docker
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - event-scraper-network
+volumes:
+  db:
+    driver: local
+networks:
+  event-scraper-network:
+    driver: bridge

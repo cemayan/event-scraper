@@ -11,11 +11,11 @@ build:
   - image: grpc-server
     context: api
     docker:
-      dockerfile: DockerfileGrpc
+      dockerfile: Dockerfile
   - image: mq-handler
     context: api
     docker:
-      dockerfile: DockerfileMQ
+      dockerfile: Dockerfile
   - image: scraper
     context: scraper
     docker:
@@ -23,7 +23,7 @@ build:
   - image: auth-service
     context: user
     docker:
-      dockerfile: DockerfileAuth
+      dockerfile: Dockerfile
   - image: user-service
     context: user
     docker:
@@ -31,12 +31,12 @@ build:
 deploy:
   kubectl:
     manifests:
-    - api/deployment.yaml
-    - api/grpc-deployment.yaml
-    - api/mq-handler-deployment.yaml
-    - scraper/deployment.yaml
-    - user/deployment.yaml
-    - user/auth-deployment.yaml
+    - deployment/k8s/api/deployment.yaml
+    - deployment/k8s/grpc_server/grpc-deployment.yaml
+    - deployment/k8s/mq_handler/mq-handler-deployment.yaml
+    - deployment/scraper/deployment.yaml
+    - deployment/user/deployment.yaml
+    - deployment/auth/auth-deployment.yaml
 portForward:
 - resourceType: service
   resourceName: api

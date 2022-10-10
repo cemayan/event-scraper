@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package protos;
+option go_package = "protos/";
+import "protos/options/gorm.proto";
+
+message Event {
+  option (gorm.opts).ormable = true;
+  uint64 id = 1;
+  string Type = 2;
+  string EventName = 3;
+  string Place = 4;
+  string FirstDate = 5;
+  string SecondDate = 6;
+  string Provider = 7;
+}
+
+service EventgRPCService {
+  rpc SendEvent(stream Event) returns (Event) {}
+}

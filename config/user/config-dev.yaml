@@ -1,0 +1,9 @@
+postgresql:
+  HOST: localhost
+  NAME: scraper_db
+  PASSWORD: password
+  PORT: 5435
+  USER: postgres
+GOARCH: arm64
+GOOS: darwin
+SECRET: secret
